@@ -65,7 +65,7 @@ function MainViewModel() {
 
   self.startShortBreak = function() {
     uiHelper.showTimer(function() {
-      self.mode = 'short';
+      self.mode = '短暂停';
       self.minutes = 5;
       self.seconds = 0;
       
@@ -79,7 +79,7 @@ function MainViewModel() {
 
   self.startLongBreak = function() {
     uiHelper.showTimer(function() {
-      self.mode = 'long';
+      self.mode = '长暂停';
       self.minutes = 15;
       self.seconds = 0;
 
