@@ -164,7 +164,7 @@ function MainViewModel() {
   };
 
   self.finished = function() {
-    notify.sendNotification('Finished ' + self.mode + '!', '');
+    notify.sendNotification('已完成： ' + self.mode + '!', '');
     
     console.info('完成');
 	$('#buzzer2').get(0).play();
