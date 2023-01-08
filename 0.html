@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" class=" is-copy-enabled">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
+    <meta charset="utf-8">
+
+    <link id="favicon" rel="icon" type="image/png" href="icons/tomato-32.png">
+
+    <title>Pomos</title>
+
+    <link href='https://fonts.googleapis.com/css?family=Cuprum' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" href="stylesheets/custom.css">
+
+    <link id="customCss" rel="stylesheet">
+
+    <script type="text/javascript">
+      window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+        alert("Ohhh crap! An error occured!\n\n" + errorMsg + "\n\non file\n" + url + "\n\non line " + lineNumber + "\n\nIf you are interested in fixing this issue go to pomos github page and add an issue with this message. Thanks!");
+
+        return false;
+      }
+    </script>
+
+    <script type="text/javascript" src="scripts/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="scripts/knockout-3.3.0.js"></script>
+    <script type="text/javascript" src="scripts/bootstrap.min.js"></script>
+
+    <script type="text/javascript" src="scripts/pomos.js"></script>
+    <script type="text/javascript" src="scripts/pomos.storage.js"></script>
+    <script type="text/javascript" src="scripts/pomos.uihelper.js"></script>
+    <script type="text/javascript" src="scripts/pomos.stats.js"></script>
+    <script type="text/javascript" src="scripts/pomos.notify.js"></script>
+    <script type="text/javascript" src="scripts/pomos.summary.js"></script>
+    <script type="text/javascript" src="scripts/pomos.notes.js"></script>
+
+    <script>
+      var version = "0.6.0";
+      var runGa = true;
+
+      if (runGa) {
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-63829470-1', 'auto');
+        ga('send', 'pageview');
+      }
+
+    </script>
+  </head>
+
+  <body>
+    <div id="main">
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <!-- Brand and toggle get grouped for better mobile display -->
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">
+              <img src="icons/tomato-32.png" alt="pomos" />
+              Pomos
+            </a>
+          </div>
+
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Menu <span class="caret"></span></a>
+
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="#" data-toggle="modal" data-target="#statisticsDialog" onClick="statisticsViewModel.load()">Statistics</a></li>
+                  <li><a href="#" data-toggle="modal" data-target="#themesDialog" onClick="mainViewModel.loadTheme()">Themes</a></li>
+
+                  <li class="divider"></li>
+                  <li><a href="https://github.com/pomos/pomos.github.io/issues" target="_blank">Issues</a></li>
+                  <li><a href="#" data-toggle="modal" data-target="#changelogDialog">Changelog</a></li>
+                  <li><a href="#" data-toggle="modal" data-target="#aboutDialog">About</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <div id="timer" data-bind="text: content"></div>
+
+      <div id="buttons">
+        <ul>
+          <li><button class="btn btn-info btn-lg" data-bind="click: startPomodoro, enable: !isTicking()">Start pomodoro</button></li>
+          <li><button class="btn btn-info btn-lg" data-bind="click: startShortBreak, enable: !isTicking()">Start short break</button></li>
+          <li><button class="btn btn-info btn-lg" data-bind="click: startLongBreak, enable: !isTicking()">Start long break</button></li>
+          <li><button class="btn btn-info btn-lg" data-bind="click: addNote, enable: isTicking">Add note</button></li>
+          <li><button class="btn btn-info btn-lg" data-bind="click: stop, enable: isTicking">Stop</button></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="modal fade" id="statisticsDialog" tabindex="-1" role="dialog" aria-labelledby="statisticsLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="statisticsLabel">Statistics</h4>
+          </div>
+          <div class="modal-body">
+            <table class="table table-bordered">
+              <tr>
+                  <th rowspan="2"></th>
+                  <th rowspan="2">Started</th>
+                  <th rowspan="2">Finished</th>
+                  <th colspan="2">Interrupted</th>
+
+                  <th rowspan="2">Percent</th>
+              </tr>
+
+              <tr>
+                <th>externally</th>
+                <th>internally</th>
+              </tr>
+
+              <tr>
+                  <th>Pomos</th>
+                  <td><span data-bind="text: pomosStarted"></span></td>
+                  <td><span data-bind="text: pomosFinished"></span></td>
+                  <td><span data-bind="text: pomosExternalInterrupted"></span></td>
+                  <td><span data-bind="text: pomosInternalInterrupted"></span></td>
+                  <td><span data-bind="text: pomosPercent"></span></td>
+              </tr>
+
+              <tr>
+                  <th>Short</th>
+                  <td><span data-bind="text: shortStarted"></span></td>
+                  <td colspan="4">-</td>
+              </tr>
+
+              <tr>
+                  <th>Long</th>
+                  <td><span data-bind="text: longStarted"></span></td>
+                  <td colspan="4">-</td>
+              </tr>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="aboutDialog" tabindex="-1" role="dialog" aria-labelledby="aboutLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="aboutLabel">About</h4>
+          </div>
+          <div class="modal-body">
+            <div style="text-align:center">
+
+              <p style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15pt; line-height: 1.42857143;
+  color: #333;"> <img src="icons/tomato-48.png" style="margin-top: -9px; margin-right: 5px;" alt="pomos" /> <span>Pomos</span></p>
+              <p class="version"></p>
+              <p>by <a href="https://github.com/yaras" target="_blank">yaras</a></p>
+
+              <a href="https://twitter.com/pomos_io" class="twitter-follow-button" data-show-count="false">Follow @pomos_io</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+            </div>
+
+            <p style="margin-top: 10px;"><strong>Pomos</strong> is a webapp for being productive. It is based on <a href="http://pomodorotechnique.com/">Pomodoro</a> technique. It is free and open source. If you have found a bug or want to request a new feature feel free and go to <strong>Pomos</strong> <a href="https://github.com/pomos/pomos.github.io">github page</a>. </p>
+
+            <p style="margin-top: 20px;">
+              <strong>Disclaimer</strong>
+            </p>
+
+            <p><strong>Pomos</strong> is in its early stage of development so it may be unstable or even stop working. Although I give my best to keep <strong>Pomos</strong> working and its data safe, I cannot guarantee something won't break from version to version.</p>
+
+            <p style="margin-top: 10px;">
+              <strong>Cookies</strong>
+            </p>
+
+            <p><strong>Pomos</strong> uses Google Analytics to gather statistics and it may store cookies on your machine. In some countries when a page stores a cookie on your machine it must be told, so I'm doing it. <a href="http://www.allaboutcookies.org/" target="_blank">Read more</a>.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="themesDialog" tabindex="-1" role="dialog" aria-labelledby="themesLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="aboutLabel">Themes</h4>
+          </div>
+          <div class="modal-body">
+
+            <p>Theme path</p>
+
+            <input class="wide" data-bind="value: theme" type="text" />
+
+            <br />
+
+            <small>Leave blank to use default theme</small>
+
+            <br />
+
+            <ul>
+              <li>
+                <div>
+                  <h4>Modern</h4>
+
+                  <div>Path: <strong>themes/modern/style.css</strong></div>
+
+                  <br />
+
+                  <img src="themes/modern/screenshot.png" alt="modern" />
+                </div>
+              </li>
+
+              <li>
+                <div>
+                  <h4>City</h4>
+
+                  <div>Path: <strong>themes/city/style.css</strong></div>
+
+                  <br />
+
+                  <img src="themes/city/screenshot.png" alt="modern" />
+                </div>
+              </li>
+
+              <li>
+                <div>
+                  <h4>Caterpillar</h4>
+
+                  <div>Path: <strong>themes/caterpillar/style.css</strong></div>
+                  <div>Source: <strong><a href="https://www.flickr.com/photos/romainguy/4874188049/">flickr</a></strong></div>
+
+                  <br />
+
+                  <img src="themes/caterpillar/screenshot.png" alt="modern" />
+                </div>
+              </li>
+
+              <li>
+                <div>
+                  <h4>Material</h4>
+
+                  <div>Path: <strong>themes/material/style.css</strong></div>
+                  <div>Source: <strong><a href="http://www.xyztimes.com/896/download-material-design-wallpapers-hd.html">material design wallpapers</a></strong></div>
+
+                  <br />
+
+                  <img src="themes/material/screenshot.png" alt="modern" />
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" data-bind="click: saveTheme">Save</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="changelogDialog" tabindex="-1" role="dialog" aria-labelledby="changelogLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="aboutLabel">Changelog</h4>
+          </div>
+          <div class="modal-body">
+
+            <strong>v0.6.0</strong>
+
+            <ul>
+              <li>Added colors to tab timer</li>
+            </ul>
+
+            <strong>v0.5.0</strong>
+
+            <ul>
+              <li>Added option to save notes</li>
+            </ul>
+
+            <strong>v0.4.1</strong>
+
+            <ul>
+              <li>Added new theme: material</li>
+              <li>Moved themes list to main page</li>
+            </ul>
+
+            <strong>v0.4.0</strong>
+
+            <ul>
+              <li>Removed logs below timer (anyone even noticed it?)</li>
+              <li>Disable buttons which are not applicable at certain state (pomodoro/break etc.)</li>
+              <li>Add summary dialog shown after each pomodoro allowing registration of interruptions</li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="summaryDialog" tabindex="-1" role="dialog" aria-labelledby="summaryLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="summaryLabel">Summary</h4>
+          </div>
+          <div class="modal-body">
+            <p>
+              Hey it seems you have finished a pomodoro, haven't you?
+            </p>
+
+						<div data-bind="visible: hasNotes">
+							<p>Also ... you saved some notes during last pomodoro:</p>
+
+							<p data-bind="html: notes"></p>
+						</div>
+
+						<hr />
+
+          	<p>The pomodoro should be marked as:</p>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-bind="click: onFinished">Finished</button>
+            <button type="button" class="btn btn-default" data-bind="click: onExternal">Externally interrupted</button>
+            <button type="button" class="btn btn-default" data-bind="click: onInternal">Internally interrupted</button>
+            <button type="button" class="btn btn-default" data-bind="click: onCancel">Cancelled</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+		<div class="modal fade" id="notesDialog" tabindex="-1" role="dialog" aria-labelledby="notesLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="notesLabel">Notes</h4>
+					</div>
+					<div class="modal-body">
+						<p>
+							Add notes:
+						</p>
+
+						<textarea id="notesText" class="form-control" rows="5" data-bind="value: note"></textarea>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-bind="click: onSave">Save</button>
+						<button type="button" class="btn btn-default" data-bind="click: onCancel">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+    <div id="footer">
+      <div class="version"></div>
+    </div>
+
+    <script type="text/javascript">
+      ko.applyBindings(mainViewModel, document.getElementById('main'));
+      ko.applyBindings(statisticsViewModel, document.getElementById('statisticsDialog'));
+      ko.applyBindings(mainViewModel, document.getElementById('themesDialog'));
+			ko.applyBindings(summaryViewModel, document.getElementById('summaryDialog'));
+			ko.applyBindings(notesViewModel, document.getElementById('notesDialog'));
+
+      $('.version').text(version);
+
+      mainViewModel.start();
+    </script>
+  </body>
+</html>
