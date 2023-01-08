@@ -54,7 +54,7 @@ function MainViewModel() {
 
   self.startPomodoro = function () {
     uiHelper.showTimer(function() {
-      self.mode = 'pomodoro';
+      self.mode = '番茄钟';
       self.minutes = 25;
       self.seconds = 0;
 
@@ -89,7 +89,7 @@ function MainViewModel() {
   };
 
   self.stop = function() {
-    if (self.mode == 'pomodoro') {
+    if (self.mode == '番茄钟') {
       summaryViewModel.openSummaryDialog();
     }
 
@@ -102,7 +102,7 @@ function MainViewModel() {
 
   self.startTicking = function() {
     self.isTicking(true);
-    notify.sendNotification('Started ' + self.mode, 'Left: ' + self.minutes + ' minutes');
+    notify.sendNotification('开始一个 ' + self.mode, '还剩下: ' + self.minutes + ' 分钟');
 
     self.updateContent();
 
@@ -146,7 +146,7 @@ function MainViewModel() {
       }
 
       if (self.minutes > 0) {
-        if (self.mode == 'pomodoro') {
+        if (self.mode == '番茄钟') {
           drawFavicon(self.minutes, 'black');
         } else {
           drawFavicon(self.minutes, 'lime');
@@ -170,7 +170,7 @@ function MainViewModel() {
 	$('#buzzer2').get(0).play();
 	//$('#buzzer').get(0).play();
 
-    if (self.mode == 'pomodoro') {
+    if (self.mode == '番茄钟') {
       summaryViewModel.openSummaryDialog();
     }
 
