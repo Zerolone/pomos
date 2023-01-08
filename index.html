@@ -1,272 +1,238 @@
-<!DOCTYPE html>
-<html lang="en" class=" is-copy-enabled">
-  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
-    <meta charset="utf-8">
+function drawFavicon(value, color) {
+  var link = document.querySelector("link[rel~='icon']");
 
-    <link id="favicon" rel="icon" type="image/png" href="icons/tomato-32.png">
+  if (!link) {
+    link = document.createElement("link");
+    link.setAttribute("rel", "shortcut icon");
+    document.head.appendChild(link);
+  }
 
-    <title>Pomos</title>
+  var faviconUrl = link.href || window.location.origin + "/icons/tomato-32.ico";
 
-    <link rel="stylesheet" href="stylesheets/bootstrap.min.css">
-    <link rel="stylesheet" href="stylesheets/custom.css">
+  function onImageLoaded() {
+    var canvas = document.createElement("canvas");
+    canvas.width = 16;
+    canvas.height = 16;
+    var context = canvas.getContext("2d");
+    context.font="12px Verdana";
+    context.fillStyle = color;
+    context.fillText(value, 0, 12);
+    context.fill();
+    link.type = "image/x-icon";
+    link.href = canvas.toDataURL();
+  };
 
-	<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+  var img = document.createElement("img");
+  img.addEventListener("load", onImageLoaded);
+  img.src = faviconUrl;
+};
 
-    <link id="customCss" rel="stylesheet">
+function resetFavicon() {
+     $("#favicon").attr('href', 'icons/tomato-32.png');
+};
 
-    <script type="text/javascript">
-      window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
-        alert("Ohhh crap! An error occured!\n\n" + errorMsg + "\n\non file\n" + url + "\n\non line " + lineNumber + "\n\nIf you are interested in fixing this issue go to pomos github page and add an issue with this message. Thanks!");
+function pad(n, width, z) {
+  z = z || '0';
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+};
 
-        return false;
-      }
-    </script>
+function MainViewModel() {
+  var self = this;
 
-    <script type="text/javascript" src="scripts/jquery-2.1.4.min.js"></script>
-    <script type="text/javascript" src="scripts/knockout-3.3.0.js"></script>
-    <script type="text/javascript" src="scripts/bootstrap.min.js"></script>
+  self.content = ko.observable('');
+  self.mode = '';
 
-    <script type="text/javascript" src="scripts/pomos.js"></script>
-    <script type="text/javascript" src="scripts/pomos.storage.js"></script>
-    <script type="text/javascript" src="scripts/pomos.uihelper.js"></script>
-    <script type="text/javascript" src="scripts/pomos.stats.js"></script>
-    <script type="text/javascript" src="scripts/pomos.notify.js"></script>
-    <script type="text/javascript" src="scripts/pomos.summary.js"></script>
-    <script type="text/javascript" src="scripts/pomos.notes.js"></script>
+  self.theme = ko.observable();
 
-    <script>
-      var version = "0.6.0";
-    </script>
-    
-    <style>
-    body,html{ margin:0px;}
-    </style>
-  </head>
+  self.minutes = 0;
+  self.seconds = 0;
 
-  <body>
-    <div id="main">
-      <!--
-      <nav class="navbar navbar-default" >
-        <div class="container-fluid">
-        </div>
-      </nav>
-		-->
+  self.interval = null;
+
+  self.isTicking = ko.observable(false);
+
+  self.startPomodoro = function () {
+    uiHelper.showTimer(function() {
+      self.mode = '番茄钟';
+      self.minutes = 25;
+      self.seconds = 0;
+
+      self.startTicking();
+      storage.storeStartPomodoro();
+    });
+  };
+
+  self.startShortBreak = function() {
+    uiHelper.showTimer(function() {
+      self.mode = '短暂停';
+      self.minutes = 5;
+      self.seconds = 0;
+      
+      //5秒调试
+      //self.minutes = 0; self.seconds = 5; 
 		
-      <div id="timer" data-bind="text: content"></div>
+      self.startTicking();
+      storage.storeStartShort();
+    });
+  };
 
-      <div id="buttons">
-          <button class="btn btn-primary" data-bind="click: startPomodoro, enable: !isTicking()">开始番茄钟</button>
-          <button class="btn btn-info"      data-bind="click: startShortBreak, enable: !isTicking()">短暂停</button>
-          <button class="btn btn-info"      data-bind="click: startLongBreak, enable: !isTicking()" >长暂停</button>
-          <button class="btn btn-default" data-bind="click: addNote, enable: isTicking">添加Note</button>
-          <button class="btn btn-danger" data-bind="click: stop, enable: isTicking">停止</button>
-      </div>
-      
-      <div id="buttons">
-          <button class="btn btn-default"   data-toggle="modal" data-target="#statisticsDialog" onClick="statisticsViewModel.load()">查看统计信息</button>
-          <button class="btn btn-success"   data-toggle="modal" data-target="#themesDialog"  onClick="mainViewModel.loadTheme()">修改主题</button>
-      </div>
-      
-      
-	<div style="display:none1">
-<audio id="buzzer"   src="click.mp3" type="audio/ogg"></audio>    
-<audio id="buzzer2" src="bell.mp3"  type="audio/ogg"></audio>    
-    </div>
+  self.startLongBreak = function() {
+    uiHelper.showTimer(function() {
+      self.mode = '长暂停';
+      self.minutes = 15;
+      self.seconds = 0;
+
+      self.startTicking();
+      storage.storeStartLong();
+    });
+  };
+
+  self.stop = function() {
+    if (self.mode == '番茄钟') {
+      summaryViewModel.openSummaryDialog();
+    }
+
+    self.mode = '';
+    self.minutes = 0;
+    self.seconds = 0;
+
+    self.stopTicking();
+  };
+
+  self.startTicking = function() {
+    self.isTicking(true);
+    notify.sendNotification('开始一个 ' + self.mode, '还剩下: ' + self.minutes + ' 分钟');
+
+    self.updateContent();
+
+    if (self.interval != null) {
+      clearInterval(self.interval);
+    }
+
+    self.interval = setInterval(self.tick, 1000);
     
-    </div>
-
-    <div class="modal fade" id="statisticsDialog" tabindex="-1" role="dialog" aria-labelledby="statisticsLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="statisticsLabel">统计</h4>
-          </div>
-          <div class="modal-body">
-            <table class="table table-bordered">
-              <tr>
-                  <th rowspan="2"></th>
-                  <th rowspan="2">已开始</th>
-                  <th rowspan="2">已完成</th>
-                  <th colspan="2">已中断</th>
-
-                  <th rowspan="2">百分比</th>
-              </tr>
-
-              <tr>
-                <th>外部原因</th>
-                <th>内部原因</th>
-              </tr>
-
-              <tr>
-                  <th>番茄数</th>
-                  <td><span data-bind="text: pomosStarted"></span></td>
-                  <td><span data-bind="text: pomosFinished"></span></td>
-                  <td><span data-bind="text: pomosExternalInterrupted"></span></td>
-                  <td><span data-bind="text: pomosInternalInterrupted"></span></td>
-                  <td><span data-bind="text: pomosPercent"></span></td>
-              </tr>
-
-              <tr>
-                  <th>短暂停</th>
-                  <td><span data-bind="text: shortStarted"></span></td>
-                  <td colspan="4">-</td>
-              </tr>
-
-              <tr>
-                  <th>长暂停</th>
-                  <td><span data-bind="text: longStarted"></span></td>
-                  <td colspan="4">-</td>
-              </tr>
-            </table>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
+    //Zerolone
+   // $('.play').click();
+   console.info('开始');
+    $('#buzzer').get(0).play();
     
-    <div class="modal fade" id="themesDialog" tabindex="-1" role="dialog" aria-labelledby="themesLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="aboutLabel">主题</h4>
-          </div>
-          <div class="modal-body">
-				<div style="display:none">
-            <p>主题路径</p>
+  };
 
-            <input class="wide" data-bind="value: theme" type="text"  id="inp_theme" />
+  self.stopTicking = function() {
+    self.isTicking(false);
+    uiHelper.hideTimer();
+    clearInterval(self.interval);
+    self.updateContent();
+    resetFavicon();
+  };
 
-            <br />
+	self.addNote = function() {
+		notesViewModel.openDialog();
+	};
 
-            <small>空为使用默认主题</small>
+  self.tick = function() {
+    if (self.mode != '') {
+      self.seconds -= 1;
 
-            <br />
-			</div>
-            <ul>
-              <li>
-                <div>
-                  <img src="themes/modern/screenshot.png" alt="modern" />
-                  <h4><button type="button" class="btn btn-primary"  onClick="func_theme('modern')">用这个 Modern</button></h4>
-                </div>
-              </li>
-
-              <li>
-                <div>
-                  <img src="themes/city/screenshot.png" alt="modern" />
-                  <h4><button type="button" class="btn btn-primary"  onClick="func_theme('city')">用这个 City</button></h4>
-                </div>
-              </li>
-
-              <li>
-                <div>
-                  <div>来源: <strong><a href="https://www.flickr.com/photos/romainguy/4874188049/">flickr</a></strong></div>
-                  <img src="themes/caterpillar/screenshot.png" alt="modern" />
-                  <h4><button type="button" class="btn btn-primary"  onClick="func_theme('caterpillar')">用这个 Caterpillar</button></h4>
-                </div>
-              </li>
-
-              <li>
-                <div>
-                  <div>来源: <strong><a href="http://www.xyztimes.com/896/download-material-design-wallpapers-hd.html">material design wallpapers</a></strong></div>
-                  <img src="themes/material/screenshot.png" alt="modern" />
-                  <h4><button type="button" class="btn btn-primary"  onClick="func_theme('material')">用这个 Material</button></h4>
-                </div>
-              </li>
-            </ul>
-          </div>
-          <div class="modal-footer">
-            <!--
-            <button type="button" class="btn btn-success" data-dismiss="modal" data-bind="click: saveTheme">保存</button>
-            -->
-            <button type="button" class="btn btn-primary"  onClick="func_theme('')">不要主题</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <div class="modal fade" id="summaryDialog" tabindex="-1" role="dialog" aria-labelledby="summaryLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="summaryLabel">总结</h4>
-          </div>
-          <div class="modal-body">
-            <p>
-              看上去你完成了一个番茄钟， 是吗？
-            </p>
-
-						<div data-bind="visible: hasNotes">
-							<p>这里是你写的一些Note:</p>
-
-							<p data-bind="html: notes"></p>
-						</div>
-
-						<hr />
-
-          	<p>这个番茄钟添加的Note：</p>
-
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-bind="click: onFinished">完成</button>
-            <button type="button" class="btn btn-default" data-bind="click: onExternal">外部原因中断</button>
-            <button type="button" class="btn btn-default" data-bind="click: onInternal">内部原因中断</button>
-            <button type="button" class="btn btn-default" data-bind="click: onCancel">取消了</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-		<div class="modal fade" id="notesDialog" tabindex="-1" role="dialog" aria-labelledby="notesLabel" aria-hidden="true">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title" id="notesLabel">Notes</h4>
-					</div>
-					<div class="modal-body">
-						<p>
-							添加Notes:
-						</p>
-
-						<textarea id="notesText" class="form-control" rows="5" data-bind="value: note"></textarea>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-success" data-bind="click: onSave">保存</button>
-						<button type="button" class="btn btn-default" data-bind="click: onCancel">取消</button>
-					</div>
-				</div>
-			</div>
-		</div>
-
-    <script type="text/javascript">
-      ko.applyBindings(mainViewModel, document.getElementById('main'));
-      ko.applyBindings(statisticsViewModel, document.getElementById('statisticsDialog'));
-      ko.applyBindings(mainViewModel, document.getElementById('themesDialog'));
-			ko.applyBindings(summaryViewModel, document.getElementById('summaryDialog'));
-			ko.applyBindings(notesViewModel, document.getElementById('notesDialog'));
-      mainViewModel.start();
-      
-      function func_theme(var_theme){
-      	var tmp_str = 'themes/'+var_theme+'/style.css';
-      	if(var_theme=='') tmp_str='';
-
-      	console.info(tmp_str);
-      	$('#customCss').attr('href', tmp_str);
-      	$('#inp_theme').val(tmp_str);
-      	
-      	storage.setSetting('theme', tmp_str);
-      	$('#themesDialog').modal('hide');
-      
+      if (self.seconds < 0) {
+        self.seconds = 59;
+        self.minutes -= 1;
       }
-      
-    </script>
-  </body>
-</html>
+
+      if (self.minutes < 0) {
+        self.finished();
+        return;
+      }
+
+      if (self.minutes > 0) {
+        if (self.mode == '番茄钟') {
+          drawFavicon(self.minutes, 'black');
+        } else {
+          drawFavicon(self.minutes, 'lime');
+        }
+      } else {
+        drawFavicon(self.seconds, 'red');
+      }
+
+      if (self.minutes == 10 && self.seconds == 0) {
+        notify.sendNotification('Pending ' + self.mode, 'Left: ' + self.minutes + ' minutes');
+      }
+
+      self.updateContent();
+    }
+  };
+
+  self.finished = function() {
+    notify.sendNotification('已完成： ' + self.mode + '!', '');
+    
+    console.info('完成');
+	$('#buzzer2').get(0).play();
+	//$('#buzzer').get(0).play();
+
+    if (self.mode == '番茄钟') {
+      summaryViewModel.openSummaryDialog();
+    }
+
+    self.mode = '';
+    self.minutes = 0;
+    self.seconds = 0;
+
+    self.stopTicking();
+  };
+
+  self.updateContent = function() {
+    if (self.mode == '') {
+      self.content('');
+    } else {
+      self.content(pad(self.minutes, 2) + ':' + pad(self.seconds, 2));
+    }
+  };
+
+  self.showLogElement = function(elem) {
+    if (elem.nodeType === 1) {
+      $(elem).hide().slideDown();
+    }
+  };
+
+  self.hideLogElement = function(elem) {
+    if (elem.nodeType === 1) {
+      $(elem).slideUp(function() { $(elem).remove(); });
+    }
+  };
+
+  self.loadTheme = function() {
+    var v = storage.getSetting('theme');
+    self.theme(v);
+    $('#customCss').attr('href', v);
+  };
+
+  self.saveTheme = function() {
+    storage.setSetting('theme', self.theme());
+    self.loadTheme();
+  };
+
+  self.checkVersion = function() {
+    var storageVersion = storage.getSetting('version');
+
+    if (version != storageVersion) {
+      $('#changelogDialog').modal('show')
+      storage.setSetting('version', version);
+    }
+  };
+
+  self.start = function() {
+    self.loadTheme();
+
+    if (storage.getSetting('start') == null) {
+      $('#aboutDialog').modal('show');
+      storage.setSetting('start', true);
+    } else {
+      self.checkVersion();
+    }
+  };
+
+  return self;
+};
+
+var mainViewModel = new MainViewModel();
