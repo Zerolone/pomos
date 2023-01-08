@@ -156,7 +156,7 @@ function MainViewModel() {
       }
 
       if (self.minutes == 10 && self.seconds == 0) {
-        notify.sendNotification('Pending ' + self.mode, 'Left: ' + self.minutes + ' minutes');
+        notify.sendNotification(' ' + self.mode, '还剩: ' + self.minutes + ' 分钟');
       }
 
       self.updateContent();
