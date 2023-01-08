@@ -1,5 +1,3 @@
-#Pomos
+修改来自于https://pomos.github.io/
 
-_Pomos_ is a webapp for being productive.
 
-Try now by visiting: https://pomos.github.io/
