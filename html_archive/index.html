@@ -2,9 +2,9 @@
 
 <head>
 	<title>4.2 寸电子墨水屏蓝牙控制器</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">  
 	<style type="text/css">
-		.main { width: 800px; margin: 0 auto;}
 		h3 { padding-bottom: .3em; border-bottom: 1px solid #CCC; }
 		fieldset { border: 2px dotted #AAA; padding: 10px; margin-bottom: 10px; }
 		fieldset legend { font-weight: bold; }
@@ -39,31 +39,6 @@
 		</fieldset>
 		<fieldset>
 			<legend>提示</legend>
-			<ul>
-				<li>
-					<b>指令列表</b>
-					<ul>
-						<li>驱动相关：
-							<ul>
-								<li><code>0</code>+<code>引脚配置</code>: 设置引脚映射（见上面引脚配置）</li>
-								<li><code>1</code>+<code>驱动 ID</code>: 驱动初始化（支持的驱动 ID: <code>01</code>/<code>02</code>/<code>03</code>）</li>
-								<li><code>2</code>: 清空屏幕（把屏幕刷为白色）</li>
-								<li><code>3</code>+<code>命令</code>: 发送命令到屏幕（请参考屏幕主控手册）</li>
-								<li><code>4</code>+<code>数据</code>: 写入数据到屏幕内存（同上）</li>
-								<li><code>5</code>: 刷新屏幕（显示已写入屏幕内存的数据）</li>
-								<li><code>6</code>: 屏幕睡眠</li>
-							</ul>
-						</li>
-						<li>系统相关：
-							<ul>
-								<li><code>90</code>+<code>配置</code>: 写入配置信息（重启生效，格式参考源码 <code>epd_config_t</code>）</li>
-								<li><code>91</code>: 系统重启</li>
-								<li><code>92</code>: 系统睡眠</li>
-							</ul>
-						</li>
-					</ul>
-				</li>
-			</ul>
 			<p>
 				系统睡眠后可通过线圈（NFC/无线充电器）唤醒（需正确配置线圈对应的引脚才有效），否则一旦系统睡眠只有重新上电才能开启蓝牙。如果价签上带有 LED，系统启动时 LED 会闪一下（需正确配置 LED 对应的引脚才有效），以便知道系统是否已经被线圈唤醒。
 			</p>
@@ -87,6 +62,5 @@
   </script>
 
 </body>
-
 
 </html>
