@@ -1,7 +1,7 @@
 <html>
 
 <head>
-	<title>4.2 寸电子墨水屏蓝牙控制器</title>
+	<title>电子墨水屏蓝牙控制器</title>
   <meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">  
 	<style type="text/css">
@@ -21,16 +21,46 @@
 
 <body>
 	<div class="main">
-		<h3>4.2 寸电子墨水屏蓝牙控制器（nRF51）---别发2</h3>
+		<h3>电子墨水屏蓝牙控制器（nRF51）</h3>
 		<fieldset>
 			<button id="connectbutton" type="button" onclick="preConnect();">连接</button>
 			<button type="button" onclick="reConnect();">重连</button>
+			<button type="button" onclick="clean();">清屏</button>
 				<div style="float: right">
 					<input type="text" id="cmdTXT" value="">
 					<button id="sendcmdbutton" type="button" onclick="sendcmd(document.getElementById(&quot;cmdTXT&quot;).value);">发送命令</button>
-					<button id="AAA" type="button" onclick="aaa();">对时时间，确保自己电脑时间正确</button>
+					<button id="AAA" type="button" onclick="aaa();">对时，确保自己电脑时间正确</button>
 				</div>
 		</fieldset>
+    
+		<fieldset>
+			<legend>传图</legend>
+			<div id="toolbar">
+				<div style="margin-bottom: 10px;">
+					<button id="clearscreenbutton" type="button" onclick="clear_canvas();">清除画布</button>
+					<button id="sendimgbutton" type="button" onclick="sendimg(document.getElementById(&quot;cmdIMAGE&quot;).value);">发送图片104X212</button>
+					<span id="status"></span>
+				</div>
+			</div>
+			<div id="sendimg">
+				<div id="filebox">
+					<input type="file" id="image_file" onchange="update_image()" accept=".png,.jpg,.bmp,.webp,.jpeg">
+					抖动算法：
+					<select id="dithering" title="抖动算法" onchange="update_image()">
+						<optgroup label="黑白">
+							<option value="none">二值化</option>
+							<option value="bayer">bayer</option>
+							<option value="floydsteinberg">floydsteinberg</option>
+							<option value="Atkinson">Atkinson</option>
+						</optgroup>
+					</select>
+					阈值:
+					<input type="number" max="255" min="0" value="125" id="threshold" onchange="update_image()">
+				</div>
+				<textarea id="cmdIMAGE"  style="display:none"></textarea>
+				<canvas id="canvas" width="104" height="212" style="border: black solid 1px;"></canvas>
+			</div>
+		</fieldset>    
 
 		<fieldset>
 			<legend>日志</legend>
@@ -38,10 +68,6 @@
 			<div id="log"></div>
 		</fieldset>
 		<fieldset>
-			<legend>提示</legend>
-			<p>
-				系统睡眠后可通过线圈（NFC/无线充电器）唤醒（需正确配置线圈对应的引脚才有效），否则一旦系统睡眠只有重新上电才能开启蓝牙。如果价签上带有 LED，系统启动时 LED 会闪一下（需正确配置 LED 对应的引脚才有效），以便知道系统是否已经被线圈唤醒。
-			</p>
 			<p style="color: #666;">
 				<strong>致谢：</strong>屏幕驱动代码来自微雪 <a href="https://www.waveshare.net/wiki/E-Paper_Shield" target="_blank">E-Paper Shield</a>，本网页代码最初基于 <a href="https://github.com/atc1441/ATC_TLSR_Paper" target="_blank">atc1441/ATC_TLSR_Paper</a> 项目的网页控制端代码修改而来。
 			</p>
@@ -53,12 +79,15 @@
   function aaa(){
     const timestampSec = Math.floor(new Date().getTime() / 1000);
     console.log(timestampSec); // 输出示例：1740985200
-    document.getElementById('cmdTXT').value = timestampSec;
+    document.getElementById('cmdTXT').value = '01' + timestampSec;
     
     document.getElementById('sendcmdbutton').click();
   }
   
-  
+  function clean(){
+    document.getElementById('cmdTXT').value = '06';
+    document.getElementById('sendcmdbutton').click();
+  }
   </script>
 
 </body>
