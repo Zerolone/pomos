@@ -72,7 +72,7 @@ async function sendIMGArray(imgArray, type = 'bw'){
 
 async function sendimg(cmdIMG) {
   startTime = new Date().getTime();
-  const epdDriver = document.getElementById("epddriver").value;
+  //const epdDriver = document.getElementById("epddriver").value;
   const imgArray = cmdIMG.replace(/(?:\r\n|\r|\n|,|0x| )/g, '');
   const bwArrLen = (canvas.width/8) * canvas.height * 2;
 
@@ -82,7 +82,8 @@ async function sendimg(cmdIMG) {
     await sendcmd("0313");
     await sendIMGArray(imgArray.slice(bwArrLen), 'bwr');
   } else {
-    await sendcmd(epdDriver === "03" ? "0310" : "0313");
+    //await sendcmd(epdDriver === "03" ? "0310" : "0313");
+    await sendcmd("0310");
     await sendIMGArray(imgArray);
   }
   await sendcmd("05");
@@ -162,6 +163,8 @@ async function connect() {
     //await sendcmd("01");
 
     document.getElementById("connectbutton").innerHTML = '断开';
+    document.getElementById("connectbutton").style.display = "none";
+    
     updateButtonStatus();
   }
 }
@@ -200,7 +203,7 @@ function intToHex(intIn) {
 }
 
 function updateImageData(canvas) {
-  const epdDriver = document.getElementById("epddriver").value;
+  //const epdDriver = document.getElementById("epddriver").value;
   const dithering = document.getElementById('dithering').value;
   document.getElementById('cmdIMAGE').value = bytesToHex(canvas2bytes(canvas, 'bw'));
   if (epdDriver === '03') {
@@ -232,12 +235,12 @@ async function update_image () {
 }
 
 function clear_canvas() {
-  if(confirm('确认清除画布内容?')) {
+//  if(confirm('确认清除画布内容?')) {
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     document.getElementById('cmdIMAGE').value = '';
-  }
+//  }
 }
 
 function convert_dithering() {
